@@ -66,7 +66,7 @@ describe('stream interface', function() {
             .pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            itemtype: 'http://example.com/Type'
+            type: ['http://example.com/Type']
         }, done);
     });
 
@@ -75,7 +75,9 @@ describe('stream interface', function() {
             .pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            property: 'Value'
+            properties: {
+                property: ['Value']
+            }
         }, done);
 
     });
@@ -90,7 +92,9 @@ describe('stream interface', function() {
         ].join('')).pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            property: 'Value'
+            properties: {
+                property: ['Value']
+            }
         }, done);
     });
 
@@ -99,7 +103,9 @@ describe('stream interface', function() {
             .pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            property: 'Some Value'
+            properties: {
+                property: ['Some Value']
+            }
         }, done);
     });
 
@@ -113,8 +119,10 @@ describe('stream interface', function() {
         ].join('')).pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            outer: 'Some random data',
-            inner: 'random'
+            properties: {
+                outer: ['Some random data'],
+                inner: ['random']
+            }
         }, done);
     });
 
@@ -128,8 +136,12 @@ describe('stream interface', function() {
         ].join('')).pipe(this.stream);
 
         expect(this.stream).to.emitItem({
-            nested: {
-                property: 'Value'
+            properties: {
+                nested: [{
+                    properties: {
+                        property: ['Value']
+                    }
+                }]
             }
         }, done);
     });
@@ -144,7 +156,9 @@ describe('stream interface', function() {
         ].join('')).pipe(this.stream);
 
         expect(this.stream).not.to.emitItem({
-            property: 'Value'
+            properties: {
+                property: 'Value'
+            }
         }, done);
     });
 
