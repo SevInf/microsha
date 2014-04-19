@@ -1,0 +1,34 @@
+{
+  "name": "microsha",
+  "version": "0.0.0",
+  "description": "Streaming HTML5 microdata parser",
+  "main": "lib/index.js",
+  "dependencies": {
+    "chai": "^1.9.1",
+    "htmlparser2": "^3.7.1"
+  },
+  "devDependencies": {
+    "mocha": "^1.18.2",
+    "sinon": "^1.9.1",
+    "sinon-chai": "^2.5.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "html5",
+    "microdata",
+    "microformat",
+    "parser"
+  ],
+  "author": "Sergej Tatarincev <sevinf@yandex-team.ru> (https://github.com/SevInf",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SevInf/microsha.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SevInf/microsha/issues"
+  },
+  "homepage": "https://github.com/SevInf/microsha"
+}
