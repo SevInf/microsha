@@ -71,6 +71,15 @@ describe('stream interface', function() {
         }, done);
     });
 
+    it('should parse multiple types', function(done) {
+        strStream('<div itemscope itemtype="http://example.com/Type1 http://example.com/Type2"></div>')
+            .pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            type: ['http://example.com/Type1', 'http://example.com/Type2']
+        }, done);
+    });
+
     it('should parse item property', function(done) {
         strStream('<div itemscope><div itemprop="property">Value</div></div>')
             .pipe(this.stream);
