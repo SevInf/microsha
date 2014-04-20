@@ -31,7 +31,8 @@ chai.use(function(_chai, utils) {
                 'Expected stream to emit #{exp} item, but #{act} was emitted',
                 'Expected stream not to emit #{exp} item',
                 item,
-                spy.called? spy.firstCall.args[0] : 'nothing'
+                spy.called? spy.firstCall.args[0] : 'nothing',
+                spy.called
             );
             done();
         });
@@ -70,7 +71,7 @@ describe('stream interface', function() {
         }, done);
     });
 
-    it('should report parse item properties', function(done) {
+    it('should parse item property', function(done) {
         strStream('<div itemscope><div itemprop="property">Value</div></div>')
             .pipe(this.stream);
 
@@ -80,6 +81,21 @@ describe('stream interface', function() {
             }
         }, done);
 
+    });
+
+    it('should parse multiple properties of the same name', function(done) {
+        strStream([
+            '<div itemscope>',
+                '<span itemprop="property">first</span>',
+                '<span itemprop="property">second</span>',
+            '</div>'
+        ].join('')).pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            properties: {
+                property: ['first', 'second']
+            }
+        }, done);
     });
 
     it('should ignore markup not in itemprop', function(done) {
@@ -142,6 +158,36 @@ describe('stream interface', function() {
                         property: ['Value']
                     }
                 }]
+            }
+        }, done);
+    });
+
+    it('should parse multiple nested scopes of the same name', function(done) {
+        strStream([
+            '<div itemscope>',
+                '<div itemscope itemprop="nested">',
+                    '<span itemprop="property">first</span>',
+                '</div>',
+                '<div itemscope itemprop="nested">',
+                    '<span itemprop="property">second</span>',
+                '</div>',
+            '</div>'
+        ].join('')).pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            properties: {
+                nested: [
+                    {
+                        properties: {
+                            property: ['first']
+                        }
+                    },
+                    {
+                        properties: {
+                            property: ['second']
+                        }
+                    }
+                ]
             }
         }, done);
     });
