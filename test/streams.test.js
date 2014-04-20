@@ -172,6 +172,20 @@ describe('stream interface', function() {
         }, done);
     });
 
+    it('should use empty string if "content" is not specified on <meta>', function(done) {
+        strStream([
+            '<div itemscope>',
+                '<meta itemprop="property" />',
+            '</div>'
+        ].join('')).pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            properties: {
+                property: ['']
+            }
+        }, done);
+    });
+
     it('should parse nested properites', function(done) {
         strStream([
             '<div itemscope>',
