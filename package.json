@@ -4,11 +4,11 @@
   "description": "Streaming HTML5 microdata parser",
   "main": "lib/index.js",
   "dependencies": {
-    "chai": "^1.9.1",
     "htmlparser2": "^3.7.1"
   },
   "devDependencies": {
     "mocha": "^1.18.2",
+    "chai": "^1.9.1",
     "sinon": "^1.9.1",
     "sinon-chai": "^2.5.0"
   },
@@ -21,7 +21,7 @@
     "microformat",
     "parser"
   ],
-  "author": "Sergej Tatarincev <sevinf@yandex-team.ru> (https://github.com/SevInf",
+  "author": "Sergej Tatarincev <sevinf@yandex-team.ru> (https://github.com/SevInf)",
   "license": "MIT",
   "repository": {
     "type": "git",
