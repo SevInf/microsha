@@ -186,6 +186,75 @@ describe('stream interface', function() {
         }, done);
     });
 
+    describe('URL properties', function() {
+        function testURLProperty(tag, attr) {
+            it('should "'+ attr + '" attribute of <' + tag + '> tag as value', function(done) {
+                strStream([
+                    '<div itemscope>',
+                        '<', tag, ' itemprop="property" ', attr, '="http://example.com/">Ignore</', tag, '>',
+                    '</div>'
+                ].join('')).pipe(this.stream);
+
+                expect(this.stream).to.emitItem({
+                    properties: {
+                        property: ['http://example.com/']
+                    }
+                }, done);
+            });
+
+            it('should use empty string if "' + attr + '" is not specified on <' + tag + '>' , function(done) {
+                strStream([
+                    '<div itemscope>',
+                        '<', tag, ' itemprop="property">Ignore</', tag, '>',
+                    '</div>'
+                ].join('')).pipe(this.stream);
+
+                expect(this.stream).to.emitItem({
+                    properties: {
+                        property: ['']
+                    }
+                }, done);
+            });
+
+            it('should resolve relative URLS in "' + attr + '" attribute of <' + tag + '> using "rootURL" option', function(done) {
+                this.stream = new microsha.Stream({rootURL: 'http://example.com'});
+                strStream([
+                    '<div itemscope>',
+                        '<', tag, ' itemprop="property" ', attr, '="some/path">',
+                    '</div>'
+                ].join('')).pipe(this.stream);
+
+                expect(this.stream).to.emitItem({
+                    properties: {
+                        property: ['http://example.com/some/path']
+                    }
+                }, done);
+            });
+        }
+
+        function testSrcProperty(tag) {
+            testURLProperty(tag, 'src');
+        }
+
+        function testHrefProperty(tag) {
+            testURLProperty(tag, 'href');
+        }
+
+        testSrcProperty('audio');
+        testSrcProperty('embed');
+        testSrcProperty('iframe');
+        testSrcProperty('img');
+        testSrcProperty('source');
+        testSrcProperty('track');
+        testSrcProperty('video');
+
+        testHrefProperty('a');
+        testHrefProperty('area');
+        testHrefProperty('link');
+
+        testURLProperty('object', 'data');
+    });
+
     it('should parse nested properites', function(done) {
         strStream([
             '<div itemscope>',
