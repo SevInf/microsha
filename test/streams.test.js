@@ -80,6 +80,15 @@ describe('stream interface', function() {
         }, done);
     });
 
+    it('should parse itemid', function(done) {
+        strStream('<div itemscope itemid="id:123"></div>')
+            .pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            id: 'id:123'
+        }, done);
+    });
+
     it('should parse item property', function(done) {
         strStream('<div itemscope><div itemprop="property">Value</div></div>')
             .pipe(this.stream);
