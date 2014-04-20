@@ -116,6 +116,21 @@ describe('stream interface', function() {
         }, done);
     });
 
+    it('should parse multiple properties within the same itemprop declaration', function(done) {
+        strStream([
+            '<div itemscope>',
+                '<span itemprop="one two">value</span>',
+            '</div>'
+        ].join('')).pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            properties: {
+                one: ['value'],
+                two: ['value']
+            }
+        }, done);
+    });
+
     it('should ignore markup not in itemprop', function(done) {
         strStream([
             '<div itemscope>',
@@ -139,6 +154,20 @@ describe('stream interface', function() {
         expect(this.stream).to.emitItem({
             properties: {
                 property: ['Some Value']
+            }
+        }, done);
+    });
+
+    it('should use content attribute of a <meta> tag as value', function(done) {
+        strStream([
+            '<div itemscope>',
+                '<meta itemprop="property" content="value" />',
+            '</div>'
+        ].join('')).pipe(this.stream);
+
+        expect(this.stream).to.emitItem({
+            properties: {
+                property: ['value']
             }
         }, done);
     });
