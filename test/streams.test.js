@@ -158,54 +158,44 @@ describe('stream interface', function() {
         }, done);
     });
 
-    it('should use content attribute of a <meta> tag as value', function(done) {
-        strStream([
-            '<div itemscope>',
-                '<meta itemprop="property" content="value" />',
-            '</div>'
-        ].join('')).pipe(this.stream);
+    describe('properties on a special tags', function() {
 
-        expect(this.stream).to.emitItem({
-            properties: {
-                property: ['value']
-            }
-        }, done);
-    });
-
-    it('should use empty string if "content" is not specified on <meta>', function(done) {
-        strStream([
-            '<div itemscope>',
-                '<meta itemprop="property" />',
-            '</div>'
-        ].join('')).pipe(this.stream);
-
-        expect(this.stream).to.emitItem({
-            properties: {
-                property: ['']
-            }
-        }, done);
-    });
-
-    describe('URL properties', function() {
-        function testURLProperty(tag, attr) {
-            it('should "'+ attr + '" attribute of <' + tag + '> tag as value', function(done) {
+        function testUsesAttrAsValue(tag, valueAttr, value) {
+            it('should use "' + valueAttr + '" attribute of a <' + tag + '> tag as value', function(done) {
                 strStream([
                     '<div itemscope>',
-                        '<', tag, ' itemprop="property" ', attr, '="http://example.com/">Ignore</', tag, '>',
+                        '<', tag, ' itemprop="property" ', valueAttr, '="', value, '">Ignore</', tag, '>',
                     '</div>'
                 ].join('')).pipe(this.stream);
 
                 expect(this.stream).to.emitItem({
                     properties: {
-                        property: ['http://example.com/']
+                        property: [value]
                     }
                 }, done);
             });
+        }
 
-            it('should use empty string if "' + attr + '" is not specified on <' + tag + '>' , function(done) {
+        function testIgnoresTagWithoutItemprop(tag, valueAttr, value) {
+            it('should ignore <' + tag + '> if it has no "itemprop" attribute', function(done) {
                 strStream([
                     '<div itemscope>',
-                        '<', tag, ' itemprop="property">Ignore</', tag, '>',
+                        '<', tag, '', valueAttr, '="', value, '">Ignore</', tag, '>',
+                    '</div>'
+                ].join('')).pipe(this.stream);
+
+                expect(this.stream).to.emitItem({}, done);
+            });
+        }
+
+        function testSpecialTagProperty(tag, valueAttr, value) {
+            testUsesAttrAsValue(tag, valueAttr, value);
+            testIgnoresTagWithoutItemprop(tag, valueAttr, value);
+
+            it('should use empty string if "' + valueAttr + '" is not specified on <' + tag + '>', function(done) {
+                strStream([
+                    '<div itemscope>',
+                        '<', tag, ' itemprop="property" >Ignore</', tag, '>',
                     '</div>'
                 ].join('')).pipe(this.stream);
 
@@ -214,46 +204,78 @@ describe('stream interface', function() {
                         property: ['']
                     }
                 }, done);
+
             });
 
-            it('should resolve relative URLS in "' + attr + '" attribute of <' + tag + '> using "rootURL" option', function(done) {
-                this.stream = new microsha.Stream({rootURL: 'http://example.com'});
-                strStream([
-                    '<div itemscope>',
-                        '<', tag, ' itemprop="property" ', attr, '="some/path">',
-                    '</div>'
-                ].join('')).pipe(this.stream);
-
-                expect(this.stream).to.emitItem({
-                    properties: {
-                        property: ['http://example.com/some/path']
-                    }
-                }, done);
-            });
         }
 
-        function testSrcProperty(tag) {
-            testURLProperty(tag, 'src');
-        }
+        testSpecialTagProperty('meta', 'content', 'value');
+        testSpecialTagProperty('data', 'value', 'some value');
+        testSpecialTagProperty('meter', 'value', '5');
 
-        function testHrefProperty(tag) {
-            testURLProperty(tag, 'href');
-        }
 
-        testSrcProperty('audio');
-        testSrcProperty('embed');
-        testSrcProperty('iframe');
-        testSrcProperty('img');
-        testSrcProperty('source');
-        testSrcProperty('track');
-        testSrcProperty('video');
+        testUsesAttrAsValue('time', 'datetime', '2014-04-20 19:00');
+        testIgnoresTagWithoutItemprop('time', 'datetime', '2014-04-20 19:00');
 
-        testHrefProperty('a');
-        testHrefProperty('area');
-        testHrefProperty('link');
+        it('should use text content if "datetime" is not specified on <time>', function(done) {
+            strStream([
+                '<div itemscope>',
+                    '<time itemprop="property">April, 20</time>',
+                '</div>'
+            ].join('')).pipe(this.stream);
 
-        testURLProperty('object', 'data');
+            expect(this.stream).to.emitItem({
+                properties: {
+                    property: ['April, 20']
+                }
+            }, done);
+        });
+
+        describe('URL properties', function() {
+            function testURLProperty(tag, attr) {
+
+                testSpecialTagProperty(tag, attr, 'http://example.com/');
+
+                it('should resolve relative URLS in "' + attr + '" attribute of <' + tag + '> using "rootURL" option', function(done) {
+                    this.stream = new microsha.Stream({rootURL: 'http://example.com'});
+                    strStream([
+                        '<div itemscope>',
+                            '<', tag, ' itemprop="property" ', attr, '="some/path">',
+                        '</div>'
+                    ].join('')).pipe(this.stream);
+
+                    expect(this.stream).to.emitItem({
+                        properties: {
+                            property: ['http://example.com/some/path']
+                        }
+                    }, done);
+                });
+            }
+
+            function testSrcProperty(tag) {
+                testURLProperty(tag, 'src');
+            }
+
+            function testHrefProperty(tag) {
+                testURLProperty(tag, 'href');
+            }
+
+            testSrcProperty('audio');
+            testSrcProperty('embed');
+            testSrcProperty('iframe');
+            testSrcProperty('img');
+            testSrcProperty('source');
+            testSrcProperty('track');
+            testSrcProperty('video');
+
+            testHrefProperty('a');
+            testHrefProperty('area');
+            testHrefProperty('link');
+
+            testURLProperty('object', 'data');
+        });
     });
+
 
     it('should parse nested properites', function(done) {
         strStream([
