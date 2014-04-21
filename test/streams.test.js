@@ -360,4 +360,85 @@ describe('stream interface', function() {
         }, done);
     });
 
+    describe('itemref parsing', function() {
+        it('should recongnize referenced subtrees below item', function(done) {
+            strStream([
+                '<div itemscope itemref="a"></div>',
+
+                '<div id="a">',
+                    '<span itemprop="property">value</span>',
+                '</div>'
+            ].join('')).pipe(this.stream);
+
+            expect(this.stream).to.emitItem({
+                properties: {
+                    property: ['value']
+                }
+            }, done);
+
+        });
+
+        it('should recognize referenced subtrees above item', function(done) {
+            strStream([
+                '<div id="a">',
+                    '<span itemprop="property">value</span>',
+                '</div>',
+
+
+                '<div itemscope itemref="a"></div>',
+            ].join('')).pipe(this.stream);
+
+            expect(this.stream).to.emitItem({
+                properties: {
+                    property: ['value']
+                }
+            }, done);
+
+        });
+
+        it('should recongize referenced subtrees with itemprop', function(done) {
+            strStream([
+                '<span id="a" itemprop="property">value</span>',
+                '<div itemscope itemref="a"></div>'
+            ].join('')).pipe(this.stream);
+
+            expect(this.stream).to.emitItem({
+                properties: {
+                    property: ['value']
+                }
+            }, done);
+        });
+
+        it('should recongnize multiple itemref declarations', function(done) {
+            strStream([
+                '<span id="a" itemprop="first">1</span>',
+                '<div itemscope itemref="a b"></div>',
+                '<span id="b" itemprop="second">2</span>'
+            ].join('')).pipe(this.stream);
+
+            expect(this.stream).to.emitItem({
+                properties: {
+                    first: ['1'],
+                    second: ['2']
+                }
+            }, done);
+        });
+
+        it('should report multiple properties of the same name in order of defintion', function(done) {
+            strStream([
+                '<span id="a" itemprop="property">1</span>',
+                '<span id="b" itemprop="property">2</span>',
+                '<div itemscope itemref="a b c">',
+                    '<span itemprop="property">3</span>',
+                '</div>',
+                '<span id="c" itemprop="property">4</span>'
+            ].join('')).pipe(this.stream);
+
+            expect(this.stream).to.emitItem({
+                properties: {
+                    property: ['1', '2', '3', '4']
+                }
+            }, done);
+        });
+    });
 });
